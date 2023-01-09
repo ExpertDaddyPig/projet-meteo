@@ -29,15 +29,24 @@ int Rexist(Node *t) {
     return t->r == NULL ? 1 : 0;
 }
 
-void printNode(Node *t) {
-    printf("%d ", t->var);
+void printNode(Node *t, char *s, FILE *f) {
+    printf("%d;%d\n", t->name, t->var);
+    fprintf(f, "%d", t->name);
+    fprintf(f, "%c", ';');
+    fprintf(f, "%d", t->var);
+    fprintf(f, "%c", '\n');
 }
 
-void parcInf(Node *t) {
+char *writeString(Node *t, char *s) {
+    return s;
+}
+
+void parcInfWrite(Node *t, FILE *out) {
+    char buf[50];
     if (t != NULL) {
-        parcInf(t->l);
-        printNode(t);
-        parcInf(t->r);
+        parcInfWrite(t->l, out);
+        printNode(t, buf, out);
+        parcInfWrite(t->r, out);
     }
 }
 
@@ -45,18 +54,19 @@ Node *insert(Node *t, int value, int name) {
     if (t == NULL) return create(value, name);
     if (value < t->var) {
         t->l = insert(t->l, value, name);
-    } else if (value > t->var) {
+    } else if (value >= t->var) {
         t->r = insert(t->r, value, name);
     } else {
         printf("%d | %d est déjà dans l'arbre.\n", name, value);
-        return t;
     }
+    return t;
 }
 
 int main(int argc, char *argv[]) {
     FILE *in = NULL, *out = NULL;
-    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0;
-    char *type = "--avl", input[50] = "undefined", output[50] = "undefined", inputFile[100], outputFile[100];
+    Node *tree = NULL;
+    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0, tempPress = 0, name, value;
+    char *type = "--avl", input[50] = "undefined", output[50] = "undefined", inputFile[100], outputFile[100], stop;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-f") == 0) {
             strcpy(input, argv[i+1]);
@@ -93,8 +103,9 @@ int main(int argc, char *argv[]) {
         } 
         if (strcmp(argv[i], "-w") == 0) {
             wind = 1;
-        } 
+        }
         if (strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "-p") == 0) {
+            tempPress = 1;
             if (strcmp(argv[i+1], "1") == 0) {
                 mode = 1;
             }
@@ -112,7 +123,7 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(output, "none") == 0) {
         printf("No output file provided.\n");
         return 1;
-    } else if (mode == 0) {
+    } else if (mode == 0 && tempPress == 1) {
         printf("Vous avez utilisé une option température ou pression, veuillez utiliser un mode listés dans la commande d'aide.\n");
     } else {
         snprintf(inputFile, sizeof(inputFile), "%s.txt", input);
@@ -142,6 +153,25 @@ int main(int argc, char *argv[]) {
             } else {
                 if (strcmp(type,"--abr") == 0) {
                     printf("Amongus Bugus Ridiculus\n");
+                    stop = fgetc(in);
+                    fprintf(out,"%c",stop);
+                    while (stop != '\n') {
+                      stop = fgetc(in);
+                      fprintf(out,"%c",stop);
+                    }
+                    fscanf(in, "%d", &name);
+                    fgetc(in);
+                    fscanf(in, "%d", &value);
+                    tree = create(value, name);
+                    do {
+                        fscanf(in, "%d", &name);
+                        getc(in);
+                        fscanf(in, "%d", &value);
+                        tree = insert(tree, value, name);
+                        stop = fgetc(in);
+                    } while (stop != EOF);
+                    parcInfWrite(tree, out);
+                    printf("\n");
                 }
                 if (strcmp(type,"--avl") == 0) {
                     printf("Amongus Volus Longinus\n");
