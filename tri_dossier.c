@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define PART 10000
 
 typedef struct Node {
     int name;
@@ -30,7 +31,6 @@ int Rexist(Node *t) {
 }
 
 void printNode(Node *t, char *s, FILE *f) {
-    printf("%d;%d\n", t->name, t->var);
     fprintf(f, "%d", t->name);
     fprintf(f, "%c", ';');
     fprintf(f, "%d", t->var);
@@ -42,10 +42,26 @@ char *writeString(Node *t, char *s) {
 }
 
 void parcInfWrite(Node *t, FILE *out) {
-    char buf[50];
+    char buf[50], skip = fgetc(out), stop;
+    int name, value;
     if (t != NULL) {
         parcInfWrite(t->l, out);
-        printNode(t, buf, out);
+        if (skip != EOF) {
+            while (skip != '\n') {
+                skip = fgetc(out);
+            }
+        }
+        if (stop != EOF) {
+            do {
+                fscanf(out, "%d", &name);
+                stop = fgetc(out);
+                fscanf(out, "%d", &value);
+                stop = fgetc(out);
+            } while (value < t->var && stop != EOF);
+            printNode(t, buf, out);
+        } else {
+            printNode(t, buf, out);
+        }
         parcInfWrite(t->r, out);
     }
 }
@@ -65,7 +81,7 @@ Node *insert(Node *t, int value, int name) {
 int main(int argc, char *argv[]) {
     FILE *in = NULL, *out = NULL;
     Node *tree = NULL;
-    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0, tempPress = 0, name, value;
+    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0, tempPress = 0, name, value, skip = 0, line = 0, start = 1;
     char *type = "--avl", input[50] = "undefined", output[50] = "undefined", inputFile[100], outputFile[100], stop;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-f") == 0) {
@@ -127,7 +143,7 @@ int main(int argc, char *argv[]) {
         printf("Vous avez utilisé une option température ou pression, veuillez utiliser un mode listés dans la commande d'aide.\n");
     } else {
         snprintf(inputFile, sizeof(inputFile), "%s.txt", input);
-        snprintf(outputFile, sizeof(outputFile), "%s.txt", output);
+        snprintf(outputFile, sizeof(outputFile), "%s.csv", output);
         in = fopen(inputFile, "r+");
         out = fopen(outputFile, "r+");
         if (in == NULL || out == NULL) {
@@ -153,24 +169,26 @@ int main(int argc, char *argv[]) {
             } else {
                 if (strcmp(type,"--abr") == 0) {
                     printf("Amongus Bugus Ridiculus\n");
-                    stop = fgetc(in);
-                    fprintf(out,"%c",stop);
                     while (stop != '\n') {
-                      stop = fgetc(in);
-                      fprintf(out,"%c",stop);
-                    }
-                    fscanf(in, "%d", &name);
-                    fgetc(in);
-                    fscanf(in, "%d", &value);
-                    tree = create(value, name);
-                    do {
-                        fscanf(in, "%d", &name);
-                        getc(in);
-                        fscanf(in, "%d", &value);
-                        tree = insert(tree, value, name);
                         stop = fgetc(in);
-                    } while (stop != EOF);
-                    parcInfWrite(tree, out);
+                    }
+                    for (int i = 0; i < 2; i++) {
+                        printf("PASSAGE %d\n", i+1);
+                        fscanf(in, "%d", &name);
+                        fgetc(in);
+                        fscanf(in, "%d", &value);
+                        tree = create(value, name);
+                        do {
+                            fscanf(in, "%d", &name);
+                            fgetc(in);
+                            fscanf(in, "%d", &value);
+                            tree = insert(tree, value, name);
+                            stop = fgetc(in);
+                            line++;
+                        } while (line < PART);
+                        parcInfWrite(tree, out);
+                        line = 0;
+                    }
                     printf("\n");
                 }
                 if (strcmp(type,"--avl") == 0) {
