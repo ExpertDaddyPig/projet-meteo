@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#define PART 10000
+#define PART 50
 
 typedef struct Node {
     int name;
@@ -42,22 +42,18 @@ char *writeString(Node *t, char *s) {
 }
 
 void parcInfWrite(Node *t, FILE *out) {
-    char buf[50], skip = fgetc(out), stop;
+    char buf[50], stop = fgetc(out);
     int name, value;
     if (t != NULL) {
         parcInfWrite(t->l, out);
-        if (skip != EOF) {
-            while (skip != '\n') {
-                skip = fgetc(out);
-            }
-        }
         if (stop != EOF) {
+			fseek(out, 0, SEEK_SET);
             do {
                 fscanf(out, "%d", &name);
                 stop = fgetc(out);
                 fscanf(out, "%d", &value);
                 stop = fgetc(out);
-            } while (value < t->var && stop != EOF);
+            } while (t->var > value && stop != EOF);
             printNode(t, buf, out);
         } else {
             printNode(t, buf, out);
@@ -145,7 +141,7 @@ int main(int argc, char *argv[]) {
         snprintf(inputFile, sizeof(inputFile), "%s.txt", input);
         snprintf(outputFile, sizeof(outputFile), "%s.csv", output);
         in = fopen(inputFile, "r+");
-        out = fopen(outputFile, "r+");
+        out = fopen(outputFile, "w+");
         if (in == NULL || out == NULL) {
             if (in == NULL) {
                 printf("Input file doesn't exist\n");
@@ -173,6 +169,7 @@ int main(int argc, char *argv[]) {
                         stop = fgetc(in);
                     }
                     for (int i = 0; i < 2; i++) {
+                        rewind(out);
                         printf("PASSAGE %d\n", i+1);
                         fscanf(in, "%d", &name);
                         fgetc(in);
