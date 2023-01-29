@@ -30,6 +30,27 @@ int Rexist(Node *t) {
     return t->r == NULL ? 1 : 0;
 }
 
+void _deleteTree(Node* node) {
+       if (node->l)
+       {
+             _deleteTree(node->l);
+             free(node->l);
+       }
+       if (node->r)
+       {
+             _deleteTree(node->r);
+             free(node->r);
+       }
+}
+
+void deleteTree(Node* node_ref) {
+     if (node_ref)
+     {
+          _deleteTree(node_ref);
+          free(node_ref);
+     }
+} 
+
 void printNode(Node *t, char *s, FILE *f) {
     fprintf(f, "%d", t->name);
     fprintf(f, "%c", ';');
@@ -47,9 +68,9 @@ void parcInfWrite(Node *t, FILE *out) {
     if (t != NULL) {
         parcInfWrite(t->l, out);
         if (stop != EOF) {
-			fseek(out, 0, SEEK_SET);
+            rewind(out);
             do {
-                fscanf(out, "%d", &name);
+                fscanf(out, "%d", &value);
                 stop = fgetc(out);
                 fscanf(out, "%d", &value);
                 stop = fgetc(out);
@@ -184,6 +205,7 @@ int main(int argc, char *argv[]) {
                             line++;
                         } while (line < PART);
                         parcInfWrite(tree, out);
+                        deleteTree(tree);
                         line = 0;
                     }
                     printf("\n");

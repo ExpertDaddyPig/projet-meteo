@@ -16,4 +16,5 @@ exec: files
 
 clean: 
 	rm -f *.txt
+	rm tri
 	@echo "TOUT LES FICHIERS TEMPORAIRES SONT EFFACES"
