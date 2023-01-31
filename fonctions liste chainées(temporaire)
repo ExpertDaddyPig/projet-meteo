@@ -1,0 +1,45 @@
+typedef struct Chain{
+	int val;
+	struct Chain* next;
+}Chain;
+
+Chain* createChain(int val_fichier_dentrée){
+	Chain* c = malloc(sizeof(Chain));
+	if(c==NULL){
+		exit(1);
+	}
+	printf("Entrer la valeur : ");
+	if( scanf("%d", &(c->val)) != 1 ){
+		exit(2);
+		}
+	c->next=NULL;
+	c->val= val_fichier_dentrée;
+	return c;
+}
+
+Chain* sort(Chain* begin){
+	Chain* tmp,*p;
+	int pr;
+	if(begin!=NULL){
+		for(tmp=begin;tmp->next!=NULL;tmp=tmp->next){
+				for(p=tmp->next;p!=NULL;p=p->next){
+					if((p->val)<(tmp->val)){
+						pr=p->val;
+						p->val=tmp->val;
+						tmp->val=pr;
+					}
+				}
+		}
+	}
+}
+
+Chain* insertEnd(Chain* begin,int val_fichier_dentrée){
+	Chain* neww,*p1;
+	neww=createChain(val_fichier_dentrée);
+	p1=begin;
+	while(p1->next!=NULL){
+		p1=p1->next;
+	}
+	p1->next=neww;
+	return begin;
+}
