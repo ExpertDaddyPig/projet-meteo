@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#define PART 50
 
 typedef struct Node {
-    int name;
+    char name[6];
     int var;
     struct Node *l, *r;
 } Node;
 
-Node* create(int value, int name) {
+Node* create(char name[], int value) {
     Node* t = malloc(sizeof(Node));
     if (t == NULL) {
         printf("Something wrong happened with the allocation\n");
@@ -17,7 +16,7 @@ Node* create(int value, int name) {
     }
     t->l = NULL;
     t->r = NULL;
-    t->name = name;
+    strcpy(t->name, name);
     t->var = value;
     return t;
 }
@@ -30,67 +29,38 @@ int Rexist(Node *t) {
     return t->r == NULL ? 1 : 0;
 }
 
-void _deleteTree(Node* node) {
-       if (node->l)
-       {
-             _deleteTree(node->l);
-             free(node->l);
-       }
-       if (node->r)
-       {
-             _deleteTree(node->r);
-             free(node->r);
-       }
-}
-
-void deleteTree(Node* node_ref) {
-     if (node_ref)
-     {
-          _deleteTree(node_ref);
-          free(node_ref);
-     }
-} 
-
-void printNode(Node *t, char *s, FILE *f) {
-    fprintf(f, "%d", t->name);
-    fprintf(f, "%c", ';');
-    fprintf(f, "%d", t->var);
-    fprintf(f, "%c", '\n');
-}
-
-char *writeString(Node *t, char *s) {
-    return s;
+void writeNode(Node *t, FILE *f) {
+    fprintf(f, "%s;%d\n", t->name, t->var);
 }
 
 void parcInfWrite(Node *t, FILE *out) {
-    char buf[50], stop = fgetc(out);
-    int name, value;
     if (t != NULL) {
         parcInfWrite(t->l, out);
-        if (stop != EOF) {
-            rewind(out);
-            do {
-                fscanf(out, "%d", &value);
-                stop = fgetc(out);
-                fscanf(out, "%d", &value);
-                stop = fgetc(out);
-            } while (t->var > value && stop != EOF);
-            printNode(t, buf, out);
-        } else {
-            printNode(t, buf, out);
-        }
+        writeNode(t, out);
         parcInfWrite(t->r, out);
     }
 }
 
-Node *insert(Node *t, int value, int name) {
-    if (t == NULL) return create(value, name);
+Node *insert(Node *t, char* name, int value) {
+    if (t == NULL) return create(name, value);
     if (value < t->var) {
-        t->l = insert(t->l, value, name);
+        t->l = insert(t->l, name, value);
     } else if (value >= t->var) {
-        t->r = insert(t->r, value, name);
+        t->r = insert(t->r, name, value);
     } else {
-        printf("%d | %d est déjà dans l'arbre.\n", name, value);
+        printf("%s | %d est déjà dans l'arbre.\n", name, value);
+    }
+    return t;
+}
+
+Node *r_insert(Node *t, char* name, int value) {
+    if (t == NULL) return create(name, value);
+    if (value > t->var) {
+        t->l = r_insert(t->l, name, value);
+    } else if (value <= t->var) {
+        t->r = r_insert(t->r, name, value);
+    } else {
+        printf("%s | %d est déjà dans l'arbre.\n", name, value);
     }
     return t;
 }
@@ -98,8 +68,8 @@ Node *insert(Node *t, int value, int name) {
 int main(int argc, char *argv[]) {
     FILE *in = NULL, *out = NULL;
     Node *tree = NULL;
-    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0, tempPress = 0, name, value, skip = 0, line = 0, start = 1;
-    char *type = "--avl", input[50] = "undefined", output[50] = "undefined", inputFile[100], outputFile[100], stop;
+    int reverse = 0, max = 0, moy = 0, wind = 0, mode = 0, tempPress = 0, value, j = 0;
+    char *type = "--avl", input[50] = "undefined", output[50] = "undefined", inputFile[100], outputFile[100], line[1024], stop, letter, name[6];
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-f") == 0) {
             strcpy(input, argv[i+1]);
@@ -175,7 +145,19 @@ int main(int argc, char *argv[]) {
         } else {
             if (reverse == 1) {
                 if (strcmp(type,"--abr") == 0) {
-                    printf("Reversus Amongus Bugus Ridiculus\n");
+                    while (stop !='\n') {
+                        stop = fgetc(in);
+                    }
+                    do {
+                        fscanf(in, "%s", line);
+                        strcpy(name, strtok(line, ";"));
+                        value = atoi(strtok(NULL, ";"));
+                        tree = r_insert(tree, name, value);
+                        stop = fgetc(in);
+                    } while (stop != EOF);
+                    fclose(in);
+                    parcInfWrite(tree, out);
+                    fclose(out);
                 }
                 if (strcmp(type,"--avl") == 0) {
                     printf("Reversus Amongus Volus Longinus\n");
@@ -185,30 +167,19 @@ int main(int argc, char *argv[]) {
                 }
             } else {
                 if (strcmp(type,"--abr") == 0) {
-                    printf("Amongus Bugus Ridiculus\n");
-                    while (stop != '\n') {
+                    while (stop !='\n') {
                         stop = fgetc(in);
                     }
-                    for (int i = 0; i < 2; i++) {
-                        rewind(out);
-                        printf("PASSAGE %d\n", i+1);
-                        fscanf(in, "%d", &name);
-                        fgetc(in);
-                        fscanf(in, "%d", &value);
-                        tree = create(value, name);
-                        do {
-                            fscanf(in, "%d", &name);
-                            fgetc(in);
-                            fscanf(in, "%d", &value);
-                            tree = insert(tree, value, name);
-                            stop = fgetc(in);
-                            line++;
-                        } while (line < PART);
-                        parcInfWrite(tree, out);
-                        deleteTree(tree);
-                        line = 0;
-                    }
-                    printf("\n");
+                    do {
+                        fscanf(in, "%s", line);
+                        strcpy(name, strtok(line, ";"));
+                        value = atoi(strtok(NULL, ";"));
+                        tree = insert(tree, name, value);
+                        stop = fgetc(in);
+                    } while (stop != EOF);
+                    fclose(in);
+                    parcInfWrite(tree, out);
+                    fclose(out);
                 }
                 if (strcmp(type,"--avl") == 0) {
                     printf("Amongus Volus Longinus\n");
