@@ -1,4 +1,5 @@
 .vscode
-*.csv
+meteo_filtered_data_v1.csv
 *.txt
+*.o
 tri

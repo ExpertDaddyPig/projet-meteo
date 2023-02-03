@@ -1,19 +1,16 @@
 all: exec
 
-files: 
-	echo `cut -d ';' --fields=5,4,1 ./meteo_filtered_data_v1.csv > vent.txt`
-	echo `cut -d ';' --fields=11,1 ./meteo_filtered_data_v1.csv > temperature.txt`
-	echo `cut -d ';' --fields=12,1 ./meteo_filtered_data_v1.csv > temperature-min.txt`
-	echo `cut -d ';' --fields=13,1 ./meteo_filtered_data_v1.csv > temperature-max.txt`
-	echo `cut -d ';' --fields=3,1 ./meteo_filtered_data_v1.csv > pression-station.txt`
-	echo `cut -d ';' --fields=7,1 ./meteo_filtered_data_v1.csv > pression-mer.txt`
-	echo `cut -d ';' --fields=14,1 ./meteo_filtered_data_v1.csv > altitude.txt`
-	echo `cut -d ';' --fields=6,1 ./meteo_filtered_data_v1.csv > humidite.txt`
+tri: tri.c
+	gcc -c tri.c -o tri.o
 
-exec: files
-	gcc -o tri tri_dossier.c
+list: list.c
+	gcc -c list.c -o list.o
+
+tree: tree.c
+	gcc -c tree.c -o tree.o
+
+exec: list tree tri
+	gcc tri.o list.o tree.o -o tri
 
 clean: 
-	rm -f *.txt
-	rm tri
-	@echo "TOUT LES FICHIERS TEMPORAIRES SONT EFFACES"
+	rm -f *.txt tri *.o
